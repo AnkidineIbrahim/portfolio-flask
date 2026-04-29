@@ -15,9 +15,15 @@ from werkzeug.utils import secure_filename
 
 # ── APP ──────────────────────────────────────────────────────
 app = Flask(__name__)
+
+# PostgreSQL sur Vercel, SQLite en local
+DATABASE_URL = os.environ.get('DATABASE_URL', 'sqlite:///portfolio.db')
+if DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+
 app.config.update(
     SECRET_KEY=os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-prod'),
-    SQLALCHEMY_DATABASE_URI='sqlite:///portfolio.db',
+    SQLALCHEMY_DATABASE_URI=DATABASE_URL,
     SQLALCHEMY_TRACK_MODIFICATIONS=False,
     UPLOAD_FOLDER=os.path.join('static', 'uploads'),
     MAX_CONTENT_LENGTH=5 * 1024 * 1024,  # 5 MB
@@ -588,6 +594,7 @@ def init_db():
         db.session.commit()
         print("✅ Base de données initialisée")
 
+init_db()
+
 if __name__ == '__main__':
-    init_db()
     app.run(debug=True, port=5000)
